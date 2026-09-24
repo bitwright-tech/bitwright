@@ -1,0 +1,89 @@
+---
+/**
+ * The liquid metal button, ported off React.
+ *
+ * The original is a React component, but the effect itself is not: it mounts
+ * `ShaderMount` from the framework-agnostic `@paper-design/shaders` onto a plain
+ * DOM node. React was only holding hover and press state, which is two event
+ * listeners here.
+ *
+ * `u_shiftRed` and `u_shiftBlue` are the chromatic split that gives the original
+ * its oil-slick flecks. Both are zeroed: this palette has no hue, and a rainbow
+ * on a monochrome site would be the one coloured thing on the page.
+ *
+ * Layering follows the original. A shader pill at the back, a fill inset by the ring
+ * width over it, the label on top, because that is what leaves a ring of moving
+ * metal rather than a metal button with dark text on it.
+ */
+interface Props {
+  href: string;
+  label: string;
+  /** Chromatic split in the metal. The reference ships 0.3, which on a hueless
+   * page is the only colour on screen. 0 is pure greyscale and can read flat,
+   * since real chrome does fringe at the highlight. 0.2 is where the fringe
+   * reads as a physical property of the metal rather than as colour on the
+   * page. */
+  shift?: number;
+  class?: string;
+}
+const { href, label, shift = 0.2, class: className = "" } = Astro.props;
+---
+
+<span class={`lm ${className}`} data-lm data-lm-shift={shift}>
+  <span class="lm-shader" data-lm-shader aria-hidden="true"></span>
+  <span class="lm-fill" aria-hidden="true"></span>
+  <a href={href} class="lm-label">{label}</a>
+</span>
+
+<script>
+  import { ShaderMount, liquidMetalFragmentShader } from "@paper-design/shaders";
+
+  const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const IDLE = still ? 0 : 0.6;
+  const LIVE = still ? 0 : 1;
+
+  for (const el of document.querySelectorAll<HTMLElement>("[data-lm-shader]")) {
+    try {
+      const shift = Number(el.closest("[data-lm]")?.getAttribute("data-lm-shift") ?? 0);
+      const mount = new ShaderMount(
+        el,
+        liquidMetalFragmentShader,
+        {
+          u_repetition: 4,
+          u_softness: 0.5,
+          // The colour fringing, set per instance. See the note on the prop.
+          u_shiftRed: shift,
+          u_shiftBlue: shift,
+          u_distortion: 0,
+          u_contour: 0,
+          u_angle: 45,
+          u_scale: 8,
+          u_shape: 1,
+          u_offsetX: 0.1,
+          u_offsetY: -0.1,
+        },
+        undefined,
+        IDLE
+      );
+
+      const root = el.closest("[data-lm]");
+      if (!root) continue;
+
+      // The metal itself reacts, and not only the box around it. Hovering speeds the
+      // flow up and a click pushes it hard for a moment, so the surface responds
+      // to the pointer the way a real specular highlight would.
+      root.addEventListener("mouseenter", () => mount.setSpeed?.(LIVE));
+      root.addEventListener("mouseleave", () => mount.setSpeed?.(IDLE));
+      root.addEventListener("focusin", () => mount.setSpeed?.(LIVE));
+      root.addEventListener("focusout", () => mount.setSpeed?.(IDLE));
+      root.addEventListener("pointerdown", () => {
+        if (still) return;
+        mount.setSpeed?.(2.4);
+        setTimeout(() => mount.setSpeed?.(root.matches(":hover") ? LIVE : IDLE), 320);
+      });
+    } catch {
+      /* No WebGL, or the shader failed to compile. The CSS ring underneath is
+         already painted, so the button keeps its metal edge either way. */
+    }
+  }
+</script>

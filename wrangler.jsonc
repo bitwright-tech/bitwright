@@ -1,0 +1,25 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "bitwright",
+  "compatibility_date": "2026-08-17",
+
+  // The site answers on its own hostname only.
+  "workers_dev": false,
+
+  // Declared here rather than clicked in the dashboard, so the hostname is part
+  // of the commit and a deploy from a clean checkout cannot land somewhere else.
+  // Cloudflare creates the DNS record on the first deploy.
+  "routes": [{ "pattern": "bitwright.tech", "custom_domain": true }],
+
+  // Assets-only Worker: there is no `main`, because there is no server-side code.
+  // Cloudflare serves dist/ straight from the edge and never boots an isolate for a
+  // page view, so this stays inside the free tier no matter the traffic.
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "404-page",
+  },
+
+  "observability": {
+    "enabled": true,
+  },
+}

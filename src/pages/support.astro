@@ -1,0 +1,34 @@
+---
+import Prose from "../layouts/Prose.astro";
+import { company } from "../data/company";
+
+/* The other address a store asks for before it will take a submission. */
+---
+
+<Prose
+  title="Support"
+  heading="Support"
+  description={`How to reach ${company.brand} about its applications or this site.`}
+>
+  <div>
+    <h2 class="type-heading">The applications</h2>
+    <p class="text-ink-2 type-body mt-4">
+      Voltz Wallet and Nyx Wallet are in development. Neither has been released, so there
+      is nothing to install yet. If you are testing one, write and say which.
+    </p>
+  </div>
+  <div>
+    <h2 class="type-heading">This site</h2>
+    <p class="text-ink-2 type-body mt-4">
+      If something here is broken, wrong or unreadable, it is worth telling us. The source
+      is public, so an issue works as well as an email.
+    </p>
+  </div>
+  <div>
+    <h2 class="type-heading">How to reach us</h2>
+    <p class="text-ink-2 type-body mt-4">
+      Write to <a href={`mailto:${company.email}`} class="prose-link">{company.email}</a>.
+      Messages are read and answered by the person who does the work.
+    </p>
+  </div>
+</Prose>

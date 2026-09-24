@@ -1,0 +1,138 @@
+---
+import Mark from "./Mark.astro";
+import Reveal from "./Reveal.astro";
+import { company } from "../data/company";
+
+/** Four link columns beside the mark, rounded top corners, a radial wash from the
+ * top edge, and each block blurring in on its own delay. The edge treatment is
+ * ours: see .shell-edge.
+ *
+ * Every destination resolves, with no placeholder /privacy or /terms that would
+ * 404. */
+interface FooterLink {
+  title: string;
+  href: string;
+  external?: boolean;
+  icon?: "github";
+}
+
+interface FooterSection {
+  label: string;
+  links: FooterLink[];
+}
+
+/* Ordered by depth, not by importance: four rows, then three, then two and two.
+ * The columns are different lengths whatever order they sit in, and a staircase
+ * reads as a decision where a random rag reads as an accident.
+ *
+ * The cost is that Resources leads and Studio follows, which inverts what
+ * matters. It is survivable here because a footer is scanned by column heading
+ * rather than read left to right. */
+const footerLinks: FooterSection[] = [
+  {
+    label: "Resources",
+    links: [
+      { title: "Source code", href: company.repo, external: true },
+      { title: "Licence", href: `${company.repo}/blob/main/LICENSE`, external: true },
+      { title: "Privacy", href: "/privacy/" },
+      { title: "Support", href: "/support/" },
+    ],
+  },
+  {
+    label: "Studio",
+    links: [
+      { title: "Capabilities", href: "/#capabilities" },
+      { title: "Systems", href: "/#systems" },
+      { title: "Engagement", href: "/#engagement" },
+    ],
+  },
+  {
+    label: "Products",
+    links: [
+      { title: "Voltz Wallet", href: "/#products" },
+      { title: "Nyx Wallet", href: "/#products" },
+    ],
+  },
+  {
+    label: "Contact",
+    links: [
+      { title: "Email", href: `mailto:${company.email}` },
+      { title: "GitHub", href: company.github, external: true, icon: "github" },
+    ],
+  },
+];
+---
+
+<footer
+  class="glow-edge rounded-t-shell pad-shell relative mx-auto flex w-full max-w-5xl flex-col items-center justify-center px-6 md:px-10"
+>
+  <span class="shell-edge" aria-hidden="true"></span>
+
+  <div class="grid w-full gap-8 xl:grid-cols-3 xl:gap-8">
+    <Reveal class="space-y-4">
+      <Mark class="optical-mark text-ink h-8 w-auto" />
+      <p class="text-ink-2 type-caption mt-8 md:mt-0">
+        © 2026 {company.brand}. All rights reserved.
+      </p>
+    </Reveal>
+
+    <div class="mt-10 grid grid-cols-2 gap-8 md:grid-cols-4 xl:col-span-2 xl:mt-0">
+      {
+        footerLinks.map((section, index) => (
+          <Reveal delay={0.1 + index * 0.1}>
+            <div class="mb-10 md:mb-0">
+              <h2 class="type-caption">{section.label}</h2>
+              <ul class="text-ink-2 type-body mt-4 space-y-2">
+                {section.links.map((link) => (
+                  <li>
+                    <a
+                      href={link.href}
+                      rel={link.external ? "noopener" : undefined}
+                      class="hover:text-ink inline-flex items-center transition-colors duration-(--duration-fast)"
+                    >
+                      {link.icon === "github" && (
+                        <svg
+                          viewBox="0 0 24 24"
+                          class="me-1 size-4"
+                          fill="currentColor"
+                          aria-hidden="true"
+                        >
+                          <path d="M12 .5a12 12 0 0 0-3.79 23.4c.6.11.82-.26.82-.58v-2.2c-3.34.73-4.04-1.42-4.04-1.42-.55-1.39-1.34-1.76-1.34-1.76-1.09-.75.08-.73.08-.73 1.2.09 1.84 1.24 1.84 1.24 1.07 1.84 2.81 1.31 3.5 1 .1-.78.42-1.31.76-1.61-2.67-.3-5.47-1.34-5.47-5.96 0-1.32.47-2.39 1.24-3.23-.13-.3-.54-1.53.11-3.18 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 0 1 6.01 0c2.29-1.55 3.3-1.23 3.3-1.23.65 1.65.24 2.88.12 3.18.77.84 1.23 1.91 1.23 3.23 0 4.63-2.8 5.65-5.48 5.95.43.37.82 1.1.82 2.22v3.29c0 .32.21.7.83.58A12 12 0 0 0 12 .5Z" />
+                        </svg>
+                      )}
+                      {link.title}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </Reveal>
+        ))
+      }
+    </div>
+  </div>
+
+  {
+    /* The registration number and the address, at 12.8px rather than 10.24px.
+      This is the line a procurement department reads, and the smallest step on
+      the scale was making the one legally identifying fact the hardest thing on
+      the page to read.
+
+      The link carries vertical padding it does not visually need. Its box was
+      13px tall, and while WCAG 2.5.8 exempts a target sitting inside a sentence,
+      an exemption is not the same as a thumb finding it. Padding on an inline
+      element grows the hit area without moving the line. */
+  }
+  <Reveal delay={0.5} class="mt-10 w-full">
+    <p class="text-ink-3 type-caption text-center font-normal">
+      {`${company.taxIdLabel} ${company.taxId}`}
+      <span class="px-2">·</span>
+      <a
+        href={`mailto:${company.email}`}
+        class="hover:text-ink py-2 transition-colors duration-(--duration-fast)"
+      >
+        {company.email}
+      </a>
+    </p>
+  </Reveal>
+</footer>

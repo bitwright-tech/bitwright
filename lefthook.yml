@@ -1,0 +1,35 @@
+# Local gates. The point is not ceremony: every check here has already caught a
+# real defect in this repository, and each one is cheap enough to run on a commit.
+pre-commit:
+  parallel: true
+  commands:
+    format:
+      glob: "*.{astro,ts,js,mjs,css,json,md,yml}"
+      run: npx prettier --check {staged_files}
+      fail_text: "run `npm run format`"
+    design-system:
+      glob: "src/**/*"
+      run: npm run check:tokens
+      fail_text: "a value escaped the design system — see docs/design-system.md"
+    # Cheap enough to run on every commit, and the reason it is here: a commit
+    # once landed with six tests red because this hook only checked formatting.
+    tests:
+      glob: "{src,tests,scripts}/**/*"
+      run: npm run test
+      fail_text: "the suite is red"
+    secrets:
+      run: node scripts/check-secrets.mjs --staged
+      fail_text: "this repository is public"
+    # Comments and documentation are most of what is written here, and they are
+    # read by people deciding whether the studio can write. The measured rate
+    # before this existed was 8.8 em dashes per thousand words.
+    prose:
+      glob: "*.{md,ts,astro,css,mjs}"
+      run: npm run check:prose
+      fail_text: "the writing has drifted, see scripts/check-prose.mjs"
+
+pre-push:
+  commands:
+    verify:
+      run: npm run verify
+      fail_text: "the branch does not pass what CI will run"

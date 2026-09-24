@@ -1,0 +1,247 @@
+---
+import Base from "../layouts/Base.astro";
+import Mark from "../components/Mark.astro";
+import Header from "../components/Header.astro";
+import Reveal from "../components/Reveal.astro";
+import Footer from "../components/Footer.astro";
+import { company, products, capabilities, systems } from "../data/company";
+
+const title = `${company.brand} — software design, engineering and operations`;
+/* The trimmed one. company.summary is longer and stays in the JSON-LD, where
+   nothing truncates it. */
+const description = company.metaDescription;
+
+/* The two products, as entities rather than as prose.
+ *
+ * They are the most searchable things on this site, proper nouns with a clear
+ * category, and they carried no structured data at all, so an assistant asked
+ * what Nyx Wallet is had nothing to hold on to.
+ *
+ * No `offers`, no `downloadUrl`, no price. Neither has shipped, and those are the
+ * fields a search result reads as "available", which would put the structured
+ * data in contradiction with the words "In development" printed beside it. */
+const productSchemas = products.map((product) => ({
+  "@context": "https://schema.org",
+  "@type": "MobileApplication",
+  name: product.name,
+  applicationCategory: "FinanceApplication",
+  operatingSystem: "iOS, Android",
+  description: product.description,
+  url: "https://bitwright.tech/#products",
+  author: { "@id": "https://bitwright.tech/#organization" },
+  publisher: { "@id": "https://bitwright.tech/#organization" },
+  isAccessibleForFree: true,
+}));
+---
+
+<Base title={title} description={description} schemas={productSchemas}>
+  <!-- Page-level, not inside the hero: the header is sticky and sits in normal
+       flow, so a glow that starts below it leaves a flat black band across the
+       top. Anchored to the body instead, the light passes behind the header and
+       the bar reads as part of the hero. -->
+  <div
+    class="glow-edge pointer-events-none absolute inset-x-0 top-0 z-(--layer-behind) h-[520px]"
+    aria-hidden="true"
+  >
+  </div>
+
+  <Header />
+
+  <main>
+    <!-- Hero -->
+    <section class="relative overflow-hidden">
+      <Mark
+        variant="outline"
+        decorative
+        class="text-ink pointer-events-none absolute top-4 -right-16 h-[420px] w-auto opacity-(--opacity-ghost) md:-right-10 md:h-[520px]"
+      />
+
+      <div class="pad-hero relative mx-auto max-w-5xl px-6 md:px-10">
+        <!-- No label over the headline, here or in any section below: a label
+             that names what the heading under it already says is the same
+             statement twice, in two sizes. -->
+        <h1 class="rise rise-lines type-display max-w-3xl" style="--index:0">
+          We design, build and operate software systems
+        </h1>
+        <p class="rise text-ink-2 type-lead measure mt-8" style="--index:1">
+          {company.brand} is an independent software studio, working across mobile and web applications,
+          the services behind them, and the infrastructure they depend on. An engagement can
+          cover a system's design, its build, and its operation once it is live.
+        </p>
+      </div>
+    </section>
+
+    <!-- Capabilities -->
+    <section id="capabilities" class="border-rule border-t">
+      <div class="pad-section mx-auto max-w-5xl px-6 md:px-10">
+        <Reveal>
+          <h2 class="type-title measure-wide">
+            We work across the whole of a product, rather than one layer of it
+          </h2>
+        </Reveal>
+
+        <dl class="divide-rule border-rule mt-12 divide-y border-y">
+          {
+            capabilities.map((row) => (
+              <div class="grid gap-2 py-6 sm:grid-cols-[10rem_1fr] sm:gap-10">
+                <dt class="text-ink-3 type-label">{row.area}</dt>
+                <dd class="text-ink-2 type-body">{row.detail}</dd>
+              </div>
+            ))
+          }
+        </dl>
+      </div>
+    </section>
+
+    <!-- The evidence for the section above, placed before the products because it
+         answers the doubt they create: two applications that have not shipped read
+         very differently under two systems that have. -->
+    <section id="systems" class="border-rule border-t">
+      <div class="pad-section mx-auto max-w-5xl px-6 md:px-10">
+        <Reveal>
+          <h2 class="type-title measure-wide">
+            Systems we built and put into production
+          </h2>
+        </Reveal>
+        <div class="mt-12 grid gap-4 md:grid-cols-2">
+          {
+            systems.map((system, i) => (
+              <Reveal delay={0.1 * i}>
+                <article class="border-rule bg-surface hover:border-rule-strong rounded-card border p-6 transition-colors duration-(--duration-fast)">
+                  <div class="flex items-start justify-between gap-4">
+                    <h3 class="type-heading">{system.name}</h3>
+                    <span class="text-ink-3 type-label whitespace-nowrap">
+                      {system.status}
+                    </span>
+                  </div>
+                  <p class="text-ink-2 type-body mt-4">{system.description}</p>
+                  <p class="text-ink-3 type-mono mt-6">{system.stack}</p>
+                </article>
+              </Reveal>
+            ))
+          }
+        </div>
+      </div>
+    </section>
+
+    <!-- Products -->
+    <section id="products" class="border-rule border-t">
+      <div class="pad-section mx-auto max-w-5xl px-6 md:px-10">
+        <Reveal>
+          <h2 class="type-title measure-wide">
+            Two applications of our own, both in development
+          </h2>
+        </Reveal>
+        <div class="mt-12 grid gap-4 md:grid-cols-2">
+          {
+            products.map((product, i) => (
+              <Reveal delay={0.1 * i}>
+                <article class="border-rule bg-surface hover:border-rule-strong rounded-card border p-6 transition-colors duration-(--duration-fast)">
+                  <div class="flex items-start justify-between gap-4">
+                    <h3 class="type-heading">{product.name}</h3>
+                    <span class="text-ink-3 type-label whitespace-nowrap">
+                      {product.status}
+                    </span>
+                  </div>
+                  <p class="text-ink-2 type-body mt-4">{product.description}</p>
+                  <p class="text-ink-3 type-mono mt-6">{product.stack}</p>
+                </article>
+              </Reveal>
+            ))
+          }
+        </div>
+      </div>
+    </section>
+
+    <!-- The reason the company exists at all, and until now it lived only in
+             llms.txt where none of the people it is for would ever read it. -->
+    <section id="engagement" class="border-rule border-t">
+      <div class="pad-section mx-auto max-w-5xl px-6 md:px-10">
+        <Reveal>
+          <h2 class="type-title measure-wide">
+            Contract engineering for clients worldwide
+          </h2>
+        </Reveal>
+
+        <div class="measure-wide mt-12 space-y-6">
+          <Reveal>
+            <p class="text-ink-2 type-body">
+              A first message does not need a brief. What you are building and what is in
+              the way is enough to start, and the reply comes from the person who would do
+              the work.
+            </p>
+          </Reveal>
+          <Reveal delay={0.1}>
+            {
+              /* A chip that hugs its content, not a bar the width of the column. Full
+                width put the address and the button at opposite ends of a wide box with
+                nothing between them, which reads as two things that failed to meet
+                rather than as one control.
+
+                Concentric corners, per the design system: card (16px) minus the 4px
+                inset is exactly control (12px), so the button's arc sits parallel to
+                the container's instead of fighting it. */
+            }
+            <div
+              class="border-rule bg-surface rounded-card inline-flex max-w-full flex-wrap items-center gap-2 border p-1 pl-4"
+            >
+              <a
+                href={`mailto:${company.email}`}
+                class="type-mono text-ink decoration-rule-strong hover:decoration-ink hit-target inline-flex items-center underline underline-offset-4 transition-colors duration-(--duration-fast)"
+              >
+                {company.email}
+              </a>
+              {
+                /* Icon only. The word "Copy" beside a mono address was the loudest
+                  thing in a quiet section, and dropping it changes which rule applies:
+                  a control carrying no visible text is held to 3:1, not the 4.5:1 that
+                  text demands, so the dimmer grey is both quieter and further inside
+                  the requirement than the brighter one was.
+
+                  The word survives for screen readers, which is also what keeps the
+                  accessible name real text instead of an aria-label. */
+              }
+              <button
+                type="button"
+                data-copy={company.email}
+                class="js-copy text-ink-3 hover:text-ink focus-visible:text-ink rounded-control px-3 transition-colors duration-(--duration-fast)"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  class="size-4"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.6"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                  data-idle
+                >
+                  <rect x="9" y="9" width="11" height="11" rx="2.5"></rect>
+                  <path d="M6 15H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v1"
+                  ></path>
+                </svg>
+                <svg
+                  viewBox="0 0 24 24"
+                  class="size-4"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.6"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                  data-copied
+                >
+                  <path d="M4 12.5 9 17.5 20 6.5"></path>
+                </svg>
+                <span class="sr-only" data-copy-label>Copy</span>
+              </button>
+            </div>
+          </Reveal>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <Footer />
+</Base>

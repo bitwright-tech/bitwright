@@ -1,0 +1,827 @@
+@import "tailwindcss" source(none);
+
+/* Sources are named rather than auto-detected. Tailwind v4 scans the project
+ * root by default, so any document that quotes a class name generates it.
+ */
+@source "../**/*.{astro,ts}";
+
+/* Self-hosted, so no request leaves the visitor for a font. Instrument Sans is
+ * variable, so 400 through 600 is one 29 KB file.
+ */
+@font-face {
+  font-family: "Instrument Sans";
+  src: url("/fonts/instrument-sans-var.woff2") format("woff2-variations");
+  font-weight: 400 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "IBM Plex Mono";
+  src: url("/fonts/ibm-plex-mono-400.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "IBM Plex Mono";
+  src: url("/fonts/ibm-plex-mono-600.woff2") format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* No hue anywhere, so every value is legible as a step on one axis. */
+@theme {
+  --font-sans: "Instrument Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, monospace;
+
+  --color-canvas: #000000;
+  --color-surface: #0a0a0a;
+  --color-ink: #ffffff;
+  --color-ink-2: #a3a3a3;
+  /* 4.76:1 on black. Carries the section labels and the CNPJ line, so it has to
+   * clear WCAG AA for normal text.
+   */
+  --color-ink-3: #787878;
+  --color-rule: #ffffff1f;
+  --color-rule-strong: #ffffff3d;
+  --color-glow: #ffffff14;
+
+  /* Named by what it wraps rather than by size, so a control and a card cannot
+   * drift apart.
+   */
+  --radius-control: 0.75rem;
+  --radius-card: 1rem;
+  --radius-panel: 1.25rem;
+  --radius-shell: 2rem;
+
+  /* Two curves, four durations. `soft` is the house easing; `spring` overshoots
+   * and is reserved for things the pointer touches.
+   */
+  --ease-soft: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
+
+  /* Tailwind's fallback for a `transition-*` class that names neither is 150ms on
+   * cubic-bezier(.4, 0, .2, 1), a fourth duration and a third curve arriving by
+   * omission. Both are set so that cannot happen.
+   */
+  --default-transition-duration: var(--duration-fast);
+  --default-transition-timing-function: var(--ease-soft);
+  --duration-fast: 200ms;
+  --duration-base: 300ms;
+  /* Press feedback. Platform press states sit between 50 and 100ms, so this is not
+   * a rounding of 200.
+   */
+  --duration-instant: 80ms;
+  --duration-slow: 800ms;
+
+  /* The distance between sections, and between blocks inside one. */
+  --space-section: 4rem;
+  --space-section-lg: 6rem;
+
+  /* The footer is not a section. `pad-section` is the distance BETWEEN sections,
+   * so applying it here puts 96px below the last line, separating it from nothing.
+   * The top stays generous because the glow needs room to rise.
+   */
+  --space-shell-top: 3.5rem;
+  --space-shell-top-lg: 4.5rem;
+  --space-shell-bottom: 2rem;
+  --space-shell-bottom-lg: 2.5rem;
+  /* The hero clears a header the sections never meet, so it does not share their
+   * rhythm.
+   */
+  --space-hero-top: 6rem;
+  --space-hero-top-lg: 9rem;
+  --space-hero-bottom: 6rem;
+  --space-hero-bottom-lg: 8rem;
+
+  /* Three layers. A layer nobody occupies is a number waiting to be used
+   * inconsistently.
+   */
+  --layer-behind: -1;
+  --layer-sticky: 50;
+  --layer-grain: 60;
+
+  --opacity-ghost: 0.04;
+  --opacity-grain: 0.028;
+
+  /* One ring, everywhere, sized so it clears the element it wraps. */
+  --focus-width: 2px;
+  --focus-offset: 3px;
+
+  /* Minimum size for a control, and it depends on the pointer. 44px is Apple's
+   * TOUCH minimum; WCAG 2.5.8 asks 24px for a pointer. Applying the touch figure
+   * to a mouse bursts a 44px button out of a 48px header bar, so fine pointers get
+   * 36px and coarse pointers get the full 44.
+   */
+  --touch-target: 2.25rem;
+
+  /* Three weights. Regular reads, medium marks a control, semibold is structure. */
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+
+  /* On a black ground a shadow cannot darken anything, so height is carried by a
+   * hairline plus a wide, very soft shadow.
+   */
+  --shadow-raised:
+    0 0 0 1px rgb(0 0 0 / 0.55), 0 2px 4px rgb(0 0 0 / 0.35),
+    0 12px 24px -14px rgb(0 0 0 / 0.8);
+  --shadow-floating:
+    0 0 0 1px rgb(0 0 0 / 0.5), 0 4px 10px rgb(0 0 0 / 0.4),
+    0 18px 34px -16px rgb(0 0 0 / 0.85);
+}
+
+/* ---------------------------------------------------------------------------
+ * Type scale, a major third of 1.25 from a 16px base
+ *
+ * Every step is 16 x 1.25^n, so adjacent levels are always distinguishable.
+ * Where two roles share a size, as lead and heading do at 20px, they are
+ * separated by weight and leading rather than by a size invented between two
+ * others.
+ *
+ *   0.64rem  10.2px   fine
+ *   0.8rem   12.8px   label, mono
+ *   1rem     16px     body, wordmark
+ *   1.25rem  20px     lead, heading
+ *   1.5625rem 25px    title (min)
+ *   2.44rem  39px     title (max), display (min)
+ *   4.77rem  76px     display (max)
+ *
+ * Tracking tightens as size grows, because letterfit that reads as normal at
+ * body size reads as loose at display size.
+ * -------------------------------------------------------------------------
+ */
+@utility type-display {
+  font-size: clamp(2.44rem, 7vw, 4.77rem);
+  font-weight: 600;
+  line-height: 0.98;
+  letter-spacing: -0.035em;
+}
+
+@utility type-title {
+  font-size: clamp(1.5625rem, 3.6vw, 2.44rem);
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+}
+
+@utility type-heading {
+  font-size: 1.25rem;
+  font-weight: var(--weight-semibold);
+  line-height: 1.4; /* 28px */
+  letter-spacing: -0.02em;
+}
+
+/* Same step as heading, told apart by weight and leading rather than by size. */
+@utility type-lead {
+  font-size: 1.25rem;
+  font-weight: var(--weight-regular);
+  line-height: 1.6; /* 32px */
+}
+
+@utility type-body {
+  font-size: 1rem;
+  font-weight: var(--weight-regular);
+  line-height: 1.5; /* 24px */
+}
+
+/* The name set beside the mark. Body size, brand letterfit. */
+@utility type-wordmark {
+  font-size: 1rem;
+  font-weight: var(--weight-semibold);
+  line-height: 1.5; /* 24px */
+  letter-spacing: -0.015em;
+}
+
+/* A small sans label for a column heading or a copyright line. Tailwind's own
+ * text-xs and text-sm are 12px and 14px and sit on neither this scale nor the
+ * 4px baseline, so the scale is extended rather than borrowed from.
+ */
+@utility type-caption {
+  font-size: 0.8rem;
+  font-weight: var(--weight-medium);
+  line-height: 1.25; /* 16px */
+}
+
+/* The mono eyebrow that labels every section. */
+@utility type-label {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: var(--weight-semibold);
+  line-height: 1.25; /* 16px */
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+@utility type-mono {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: var(--weight-regular);
+  line-height: 1.25; /* 16px */
+}
+
+/* Fine print. Not uppercase: the registration line carries an email address. */
+@utility type-fine {
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  font-weight: var(--weight-regular);
+  line-height: 1.5625; /* 16px */
+  letter-spacing: 0.02em;
+}
+
+/* ---------------------------------------------------------------------------
+ * Measure
+ *
+ * A comfortable line runs 45 to 75 characters, which at this body size is
+ * roughly 34rem. Body copy is capped there rather than allowed to run the full
+ * width of a 64rem container.
+ * -------------------------------------------------------------------------
+ */
+/* ---------------------------------------------------------------------------
+ * Vertical rhythm
+ *
+ * One utility for the distance between sections, so a larger gap always means a
+ * larger break.
+ * -------------------------------------------------------------------------
+ */
+/* Any control the finger can reach must clear the minimum whatever its text
+ * size. Padding alone gives the nav links 33px.
+ */
+@utility hit-target {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--touch-target);
+}
+
+@media (pointer: coarse) {
+  :root {
+    --touch-target: 2.75rem;
+  }
+}
+
+@utility pad-section {
+  padding-block: var(--space-section);
+
+  @media (width >= 48rem) {
+    padding-block: var(--space-section-lg);
+  }
+}
+
+@utility pad-hero {
+  padding-top: var(--space-hero-top);
+  padding-bottom: var(--space-hero-bottom);
+
+  @media (width >= 48rem) {
+    padding-top: var(--space-hero-top-lg);
+    padding-bottom: var(--space-hero-bottom-lg);
+  }
+}
+
+@utility pad-shell {
+  padding-top: var(--space-shell-top);
+  padding-bottom: var(--space-shell-bottom);
+
+  @media (width >= 48rem) {
+    padding-top: var(--space-shell-top-lg);
+    padding-bottom: var(--space-shell-bottom-lg);
+  }
+}
+
+@utility measure {
+  max-width: 34rem;
+}
+
+@utility measure-wide {
+  max-width: 42rem;
+}
+
+@utility measure-narrow {
+  max-width: 26rem;
+}
+
+/* The same palette read from the other side. */
+@media (prefers-color-scheme: light) {
+  :root {
+    --color-canvas: #ffffff;
+    --color-surface: #f4f4f4;
+    --color-ink: #000000;
+    --color-ink-2: #545454;
+    --color-ink-3: #737373;
+    --color-rule: #0000001f;
+    --color-rule-strong: #0000003d;
+    --color-glow: #00000012;
+
+    /* Elevation flips with the ground. The dark values lean on a near-black
+     * hairline, and that same ring on white reads as a printed outline rather than
+     * as height, so here the ring softens and the shadow lifts.
+     */
+    --shadow-raised:
+      0 0 0 1px rgb(0 0 0 / 0.08), 0 1px 2px rgb(0 0 0 / 0.06),
+      0 8px 20px -12px rgb(0 0 0 / 0.25);
+    --shadow-floating:
+      0 0 0 1px rgb(0 0 0 / 0.1), 0 4px 10px rgb(0 0 0 / 0.08),
+      0 18px 34px -18px rgb(0 0 0 / 0.3);
+  }
+}
+
+/* Continuous corners: the curvature eases into the straight edge instead of
+ * meeting it at a tangent. Chromium only, and it degrades to the circular corner
+ * `border-radius` already specifies.
+ *
+ * The selector matches on class name, so a component that sets its radius in CSS
+ * has to be named here. `.lm` is one.
+ */
+:where(
+  .lm,
+  [class*="rounded-control"],
+  [class*="rounded-card"],
+  [class*="rounded-panel"],
+  [class*="rounded-shell"]
+) {
+  corner-shape: squircle;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+  /* The ground lives on <html>, not <body>. Body's background would propagate to
+   * the canvas and paint over the page-level glow, which sits at a negative
+   * z-index so the sticky header can blend into it.
+   */
+  background-color: var(--color-canvas);
+}
+
+body {
+  position: relative;
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Grain keeps flat black from reading as a dead surface. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: var(--layer-grain);
+  pointer-events: none;
+  opacity: var(--opacity-grain);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+::selection {
+  background-color: var(--color-ink);
+  color: var(--color-canvas);
+}
+
+:focus-visible {
+  outline: var(--focus-width) solid var(--color-ink);
+  outline-offset: var(--focus-offset);
+}
+
+/* Above the fold: one orchestrated entrance on load.
+ *
+ * The stagger is data. Each element carries --index and the step is a tenth of
+ * --duration-slow, so the rhythm derives from the scale instead of adding a
+ * duration to it. The +1 keeps anything from starting on the frame of first
+ * paint.
+ *
+ * The move is bigger than the below-the-fold reveal, and bigger again for
+ * display type, because a displacement that reads as a move at 13px reads as a
+ * twitch at 76px.
+ */
+@keyframes rise {
+  from {
+    opacity: 0;
+    filter: blur(6px);
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    filter: none;
+    transform: none;
+  }
+}
+
+/* The headline, developing top-down.
+ *
+ * Done in paint rather than by splitting the h1 into spans, which would cost the
+ * heading its single text node and make assistive technology read one sentence
+ * as N boxes. A mask two and a half times the height of the block, opaque for
+ * its first 40% and clear after 60%, slides from one end to the other.
+ *
+ * Longhands, deliberately: mask-position folded into the `mask` shorthand is a
+ * form this pipeline has shipped broken before. Asserted against dist/.
+ *
+ * Where an engine has no unprefixed mask-image the two declarations are dropped
+ * and the headline does the plain block rise.
+ */
+@keyframes rise-lines {
+  from {
+    opacity: 0;
+    filter: blur(10px);
+    transform: translateY(16px);
+    mask-position: 0 100%;
+  }
+  to {
+    opacity: 1;
+    filter: none;
+    transform: none;
+    mask-position: 0 0;
+  }
+}
+
+.rise {
+  animation: rise var(--duration-slow) var(--ease-soft) backwards;
+  animation-delay: calc((var(--index, 0) + 1) * var(--duration-slow) / 10);
+}
+
+/* MUST stay after .rise: that rule's `animation` shorthand resets name and
+ * duration, so reordering the stylesheet hands the headline the plain entrance
+ * back. A test asserts the order, because a comment cannot fail.
+ *
+ * One and a half entrances, because the sweep has a block to cross.
+ */
+.rise-lines {
+  mask-image: linear-gradient(180deg, #000 0 40%, transparent 60%);
+  mask-size: 100% 250%;
+  mask-repeat: no-repeat;
+  animation-name: rise-lines;
+  animation-duration: calc(var(--duration-slow) * 1.5);
+}
+
+/* Below the fold: blur in as the element enters the viewport.
+ *
+ * A plain transition toggled by one IntersectionObserver, NOT a scroll-driven
+ * `animation-timeline`. That version is unsupported in Firefox, and in Chromium
+ * the build pipeline folds `animation-timeline` into the `animation` shorthand,
+ * a form no engine implements, so the rule is silently discarded.
+ *
+ * The hidden state is scoped to `.js-reveal`, which the enhancement script puts
+ * on <html>. No script, no hidden state: content that needs JavaScript in order
+ * to be visible is a bug, not an animation.
+ */
+.js-reveal [data-reveal] {
+  opacity: 0;
+  filter: blur(4px);
+  transform: translateY(-8px);
+  transition:
+    opacity var(--duration-slow) var(--ease-soft) var(--reveal-delay, 0s),
+    filter var(--duration-slow) var(--ease-soft) var(--reveal-delay, 0s),
+    transform var(--duration-slow) var(--ease-soft) var(--reveal-delay, 0s);
+}
+
+.js-reveal [data-reveal].is-visible {
+  opacity: 1;
+  filter: none;
+  transform: none;
+}
+
+/* Liquid metal button.
+ *
+ * A WebGL shader paints the pill; a fill inset by the ring width covers the
+ * middle, so what shows is a ring of moving metal. The CSS conic gradient
+ * underneath is not decoration. It is what the button looks like before the
+ * shader mounts, and what it keeps looking like if WebGL is unavailable or the
+ * script never runs. */
+@property --lm-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+.lm {
+  --lm-ring: 2px;
+  position: relative;
+  display: inline-flex;
+  isolation: isolate;
+  /* A control, at the radius every other control uses. A pill is a legitimate
+   * device for "the one action", but it sits INSIDE the header panel, where its
+   * arc runs against the panel's own instead of parallel to it.
+   */
+  border-radius: var(--radius-control);
+  transition:
+    transform var(--duration-base) var(--ease-spring),
+    box-shadow var(--duration-base) var(--ease-spring);
+  box-shadow: var(--shadow-raised);
+}
+
+.lm:hover,
+.lm:focus-within {
+  transform: translateY(-1px);
+  box-shadow:
+    var(--shadow-floating),
+    0 0 14px -6px rgb(255 255 255 / 0.16);
+}
+
+.lm:hover {
+  --lm-ring: 2.5px;
+}
+
+.lm:active {
+  transform: translateY(0.5px) scale(0.985);
+  transition-duration: var(--duration-instant);
+  box-shadow:
+    0 0 0 1px rgb(0 0 0 / 0.6),
+    0 1px 2px rgb(0 0 0 / 0.5);
+}
+
+/* Back layer: the shader mounts its canvas in here. Until it does, the conic
+ * gradient below is the metal. */
+.lm-shader {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  overflow: hidden;
+  border-radius: inherit;
+  background-image:
+    linear-gradient(
+      180deg,
+      rgb(255 255 255 / 0.5),
+      rgb(255 255 255 / 0) 34%,
+      rgb(0 0 0 / 0.3) 78%,
+      rgb(0 0 0 / 0.55)
+    ),
+    conic-gradient(
+      from var(--lm-angle),
+      #ffffff 0deg,
+      #c4c4c4 20deg,
+      #ffffff 46deg,
+      #969696 76deg,
+      #f0f0f0 108deg,
+      #a8a8a8 146deg,
+      #ffffff 184deg,
+      #8c8c8c 216deg,
+      #eeeeee 252deg,
+      #b0b0b0 292deg,
+      #ffffff 330deg,
+      #cecece 360deg
+    );
+  background-blend-mode: overlay, normal;
+  animation: lm-sweep 9s linear infinite;
+}
+
+/* The shader library sizes its own canvas; this pins it to the pill. */
+.lm-shader canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: inherit;
+}
+
+/* Middle layer: the fill, inset by the ring width. */
+.lm-fill {
+  position: absolute;
+  inset: var(--lm-ring);
+  z-index: -1;
+  border-radius: inherit;
+  background: linear-gradient(180deg, #202020, #000000);
+  transition:
+    inset var(--duration-base) var(--ease-spring),
+    box-shadow var(--duration-fast) var(--ease-soft);
+  box-shadow:
+    0 0 0 1px rgb(0 0 0 / 0.5),
+    inset 0 1px 0 rgb(255 255 255 / 0.08);
+}
+
+.lm:active .lm-fill {
+  box-shadow:
+    0 0 0 1px rgb(0 0 0 / 0.5),
+    inset 0 2px 5px rgb(0 0 0 / 0.5);
+}
+
+.lm-label {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--touch-target);
+  padding-inline: 1.25rem;
+  /* #666 measures about 3:1 on this ground, which fails AA for a link that is the
+   * page's only call to action.
+   */
+  color: #e6e6e6;
+  /* 1rem. 14px is not on the 1.25 scale and its 21px line box is not on the 4px
+   * grid, and a CTA must not sit a step below the nav links beside it.
+   */
+  font-size: 1rem;
+  font-weight: var(--weight-medium);
+  line-height: 1.5;
+  white-space: nowrap;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 0.5);
+  transition: color var(--duration-base) var(--ease-soft);
+}
+
+.lm:hover .lm-label,
+.lm:focus-within .lm-label {
+  color: #ffffff;
+}
+
+/* The lift is motion; the metal speeding up is not. Under reduced motion the
+ * button still answers the pointer, it just does it without moving. */
+@media (prefers-reduced-motion: reduce) {
+  .lm,
+  .lm-fill,
+  .lm-label {
+    transition: none;
+  }
+  .lm:hover,
+  .lm:focus-within,
+  .lm:active {
+    transform: none;
+  }
+}
+
+@keyframes lm-sweep {
+  to {
+    --lm-angle: 360deg;
+  }
+}
+
+/* The footer's top edge.
+ *
+ * A real border on the rounded shell, so it follows the curve instead of lying
+ * flat across it, at the same 1px and --color-rule as every other divider. The
+ * mask fades it out as it turns down the sides, so the line dissolves rather
+ * than being cut off in mid-air.
+ */
+.shell-edge {
+  position: absolute;
+  inset: 0;
+  z-index: var(--layer-behind);
+  pointer-events: none;
+  border: 1px solid var(--color-rule);
+  border-bottom: 0;
+  border-radius: inherit;
+  /* One mask, and it fades in LENGTH rather than in percentages. The corner arc is
+   * 32px wide, and 4% of a 1024px column is 41px, so a percentage fade puts the
+   * whole curve inside it and draws the one thing the line exists to describe at
+   * partial opacity.
+   */
+  mask-image: linear-gradient(
+    180deg,
+    #000 0,
+    #000 12px,
+    rgb(0 0 0 / 0.45) 26px,
+    transparent 38px
+  );
+}
+
+/* Optical alignment for the mark.
+ *
+ * Everything else in the header and the footer lines up by its box. The mark
+ * cannot: its glyph is drawn two units inside a sixteen unit wide viewBox, so a
+ * mark whose BOX sits on the column has its GLYPH an eighth of its own width
+ * short of it. That is the kind of difference nobody can name and everybody
+ * sees as lopsided.
+ *
+ * A percentage inside `transform` resolves against the element's OWN size, which
+ * is the one place in CSS where that is true. So one declaration corrects the
+ * mark at every height it is set to, including one nobody has chosen yet. A margin cannot do this: a
+ * percentage margin resolves against the parent's width, and an em against the
+ * font size, and the mark's inset is a property of neither.
+ *
+ * Nothing automated catches the defect this fixes, because every box involved
+ * measures correct. It was found by looking at a narrow window.
+ */
+.optical-mark {
+  transform: translateX(-12.5%);
+}
+
+/* An inline link in running text. */
+.prose-link {
+  color: var(--color-ink);
+  text-decoration-line: underline;
+  text-decoration-color: var(--color-rule-strong);
+  text-underline-offset: 4px;
+  transition: text-decoration-color var(--duration-fast) var(--ease-soft);
+}
+
+.prose-link:hover {
+  text-decoration-color: var(--color-ink);
+}
+
+/* Copy-to-clipboard, which is markup only a browser with a clipboard can honour.
+ *
+ * It ships display:none and the enhancement adds .is-ready, so a browser without
+ * navigator.clipboard, or with the script blocked, never renders a button that
+ * does nothing when pressed. Deliberately not the `hidden` attribute: a display
+ * utility in the class list would out-specify it and show the dead button
+ * anyway, which is the failure this rule exists to prevent. */
+.js-copy {
+  display: none;
+  align-items: center;
+  /* Its own min-height rather than the hit-target utility, which also sets a
+   * display. One rule owns display here.
+   */
+  min-height: var(--touch-target);
+}
+
+.js-copy.is-ready {
+  display: inline-flex;
+}
+
+/* The confirmation is the icon, because the word is not on screen. */
+.js-copy [data-copied] {
+  display: none;
+}
+
+.js-copy.is-copied [data-idle] {
+  display: none;
+}
+
+.js-copy.is-copied [data-copied] {
+  display: block;
+}
+
+/* Light spilling from a top edge, used by the hero and by the footer shell. One
+ * declaration for both, because it is one idea: the light dies at 62% of the
+ * height of whatever it is lighting.
+ */
+@utility glow-edge {
+  background-image: radial-gradient(50% 62% at 50% 0%, var(--color-glow), transparent);
+}
+
+/* Header that docks into a floating pill once the page has scrolled. The class
+ * is toggled by the same script; the movement itself is a CSS transition. */
+/* The bar keeps the content column's width when it docks. Narrowing on scroll
+ * would take the header out of the grid every other element aligns to. Docking
+ * is expressed by the pill, the blur and the shadow instead.
+ */
+.site-header {
+  transition:
+    top var(--duration-base) var(--ease-soft),
+    border-color var(--duration-base) var(--ease-soft),
+    background-color var(--duration-base) var(--ease-soft),
+    box-shadow var(--duration-base) var(--ease-soft),
+    backdrop-filter var(--duration-base) var(--ease-soft);
+}
+
+.site-nav {
+  transition: padding-inline var(--duration-base) var(--ease-soft);
+}
+
+/* At the top of the page the bar has no ground of its own, so the hero light
+ * carries straight through it. A background only appears once content is
+ * actually scrolling underneath and legibility needs one. */
+.site-header.is-docked {
+  /* Glass, not a panel: enough ground to keep text legible over whatever scrolls
+   * underneath, and no more. The blur does most of the work. A heavier blur with
+   * a lighter tint reads as depth, while a darker tint just reads as a bar. */
+  background-color: color-mix(in oklab, var(--color-canvas) 46%, transparent);
+  backdrop-filter: blur(20px) saturate(140%);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.06);
+}
+
+@media (min-width: 768px) {
+  .site-header.is-docked {
+    top: 1rem;
+    border-color: var(--color-rule);
+    box-shadow: 0 10px 30px -12px rgb(0 0 0 / 0.55);
+  }
+
+  /* A pill inside a rounded panel needs clearance, not less of it: at 0.5rem the
+   * button's corner arc ran into the panel's own. */
+  .site-header.is-docked .site-nav {
+    padding-inline: 0.75rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .rise,
+  .rise-lines {
+    animation: none;
+  }
+  /* Not redundant. With the animation off, .rise-lines still carries the mask it
+   * was going to sweep, parked by the base rule where it happens to cover the
+   * whole block. The headline would then be whole by luck of a default rather
+   * than by decision, and one edit to mask-position in that rule would leave it
+   * permanently half-erased with the build green. */
+  .rise-lines {
+    mask: none;
+  }
+  .site-header,
+  .site-nav,
+  .js-reveal [data-reveal] {
+    transition: none;
+  }
+  .lm-shader {
+    animation: none;
+  }
+  /* Force-visible, and not merely un-transitioned. Someone who turns motion off
+   * after load keeps the `.js-reveal` class; without this they would depend on
+   * the observer still firing to see anything. */
+  .js-reveal [data-reveal] {
+    opacity: 1;
+    filter: none;
+    transform: none;
+  }
+}

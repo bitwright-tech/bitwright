@@ -1,0 +1,36 @@
+# The live configuration, on a clock rather than on a deploy.
+#
+# check:live already runs after every deploy, and that is not enough: it only
+# fires when something else happens. Everything it guards is dashboard state,
+# and dashboard state drifts on its own schedule. A quiet month with no pushes
+# is exactly when a flipped setting would go unnoticed.
+#
+# GitHub disables scheduled workflows on a public repository after sixty days
+# with no activity, and emails the owner first. That is worth knowing, because a
+# scheduled check that silently stopped is the defect this exists to prevent.
+name: Live
+
+on:
+  schedule:
+    # Monday mornings, UTC.
+    - cron: "0 9 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Live configuration
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@f548e57e544e1ff5a4c46bf1e1b8685f8e4a348a # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@ae0d4ed08881f17d1511386f5be3e62356acd4a6 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npm run check:live

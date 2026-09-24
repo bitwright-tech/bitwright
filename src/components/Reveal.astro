@@ -1,0 +1,19 @@
+---
+/**
+ * Blur in, slide down, fade up, staggered by a delay in seconds.
+ *
+ * The hidden starting state lives behind a `.js-reveal` class that the
+ * enhancement script adds to <html>. If the script never runs, or throws, the
+ * class is absent and the content is simply visible. Content that depends on
+ * JavaScript to become visible is a bug, not an animation.
+ */
+interface Props {
+  delay?: number;
+  class?: string;
+}
+const { delay = 0, class: className } = Astro.props;
+---
+
+<div data-reveal class={className} style={delay ? `--reveal-delay:${delay}s` : undefined}>
+  <slot />
+</div>

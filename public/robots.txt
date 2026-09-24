@@ -1,0 +1,21 @@
+# Everything here is public by intent, including for answer engines.
+User-agent: *
+Allow: /
+
+# Named explicitly so a future default-deny never silently delists us.
+User-agent: GPTBot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+Sitemap: https://bitwright.tech/sitemap-index.xml

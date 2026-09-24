@@ -1,0 +1,44 @@
+---
+import Base from "../layouts/Base.astro";
+import Mark from "../components/Mark.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import { company } from "../data/company";
+---
+
+<Base
+  title={`Not found — ${company.brand}`}
+  description="This page does not exist on bitwright.tech."
+  noindex
+>
+  <Header />
+  <div class="mx-auto flex min-h-[60vh] max-w-5xl flex-col px-6 md:px-10">
+    <main class="relative flex flex-1 items-center py-20">
+      <Mark
+        decorative
+        class="text-ink pointer-events-none absolute top-1/4 right-0 h-40 w-auto opacity-(--opacity-ghost) lg:h-64"
+      />
+      {
+        /* No label over the heading and no full stop after it, for the same reasons
+          they left the rest of the site: a label that repeats the heading, and a
+          heading punctuated as prose. This page was written before those rules and
+          kept its own conventions for a while afterwards. */
+      }
+      <div class="measure relative">
+        <h1 class="type-title">Nothing is filed under this address</h1>
+        <p class="text-ink-2 type-body mt-6">
+          The link may be old, or the address may have a typo in it. Everything the studio
+          publishes is on one page.
+        </p>
+        <p class="mt-8">
+          <a href="/" class="prose-link"> Back to the studio </a>
+        </p>
+      </div>
+    </main>
+  </div>
+  {
+    /* The footer stays. Someone who has arrived here is the visitor most in need of
+      a set of options, and it is the only place on the site that carries them all. */
+  }
+  <Footer />
+</Base>

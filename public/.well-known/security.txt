@@ -1,0 +1,11 @@
+# How to report a security problem with bitwright.tech or with software published
+# by Bitwright. RFC 9116.
+#
+# Expires is a required field and it is a real deadline: a security.txt past its
+# expiry is treated as abandoned, which is worse than not publishing one. A test
+# in this repository fails the build once it is within sixty days of that date.
+
+Contact: mailto:contact@bitwright.tech
+Expires: 2027-08-19T00:00:00.000Z
+Preferred-Languages: en, pt
+Canonical: https://bitwright.tech/.well-known/security.txt

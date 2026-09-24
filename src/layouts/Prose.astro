@@ -1,0 +1,35 @@
+---
+import Base from "./Base.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import { company } from "../data/company";
+
+/* The shell every text page shares. Two pages had it copied, down to the class
+ * string on an inline link, and a third would have made that three. What varies
+ * between them is a title, a description, an optional date and the prose itself,
+ * which is exactly what the props are. */
+interface Props {
+  title: string;
+  description: string;
+  heading: string;
+  /* Set on a document whose age is part of what it says. A policy with no date
+   * cannot be told apart from one nobody has revisited. */
+  updated?: string;
+}
+
+const { title, description, heading, updated } = Astro.props;
+---
+
+<Base title={`${title} — ${company.brand}`} description={description}>
+  <Header />
+  <main>
+    <section class="pad-section mx-auto max-w-5xl px-6 md:px-10">
+      <h1 class="type-title measure-wide">{heading}</h1>
+      {updated && <p class="text-ink-3 type-fine mt-4">Last updated {updated}</p>}
+      <div class="measure mt-12 space-y-10">
+        <slot />
+      </div>
+    </section>
+  </main>
+  <Footer />
+</Base>

@@ -1,0 +1,48 @@
+---
+import { company } from "../data/company";
+
+/**
+ * The Bitwright mark: a lowercase b set on a 3 by 5 grid of cells, one cell to a
+ * bit. Every stroke is one cell wide and the counter is exactly one cell.
+ *
+ * Cells are 4 units, so the glyph is 12 by 20 with a 2-unit margin on every
+ * side. The viewBox is 16 by 24 rather than square because the glyph is narrow:
+ * a square box would leave a wide blank beside it and push the wordmark away.
+ * Monochrome by construction, so it inverts on any ground without a second asset.
+ *
+ *   solid    the filled glyph, counter cut by the even-odd rule
+ *   outline  the same contour drawn in line
+ */
+interface Props {
+  variant?: "solid" | "outline";
+  /** Hide from assistive technology wherever the mark sits beside the wordmark
+   * or is pure decoration, so a screen reader does not say the name twice. */
+  decorative?: boolean;
+  class?: string;
+  width?: number;
+  height?: number;
+}
+const {
+  variant = "solid",
+  decorative = false,
+  class: className = "",
+  ...rest
+} = Astro.props;
+
+const label = decorative
+  ? ({ "aria-hidden": "true" } as const)
+  : ({ role: "img", "aria-label": company.brand } as const);
+
+// Also drawn by public/favicon.svg and scripts/render-assets.mjs; change all three together.
+const GLYPH = "M6 2H10V10H18V22H6Z M10 14V18H14V14Z";
+---
+
+<svg viewBox="4 0 16 24" class={className} fill="none" {...label} {...rest}>
+  {variant === "solid" && <path d={GLYPH} fill="currentColor" fill-rule="evenodd" />}
+
+  {
+    variant === "outline" && (
+      <path d={GLYPH} stroke="currentColor" stroke-width="0.6" stroke-linejoin="miter" />
+    )
+  }
+</svg>

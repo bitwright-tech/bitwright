@@ -1,0 +1,57 @@
+# Dependency updates, first party.
+#
+# This replaced a renovate.json that read as policy and ran nothing: the config
+# was committed, the app was never installed on the organisation, and no issue
+# or pull request had ever been opened. A configuration file that looks like
+# automation and is not is worse than none, because it answers the question
+# nobody then asks again.
+#
+# Dependabot needs no app installed. That also keeps a third party with write
+# access off a repository that deploys to production on a push, which is the
+# same reason the deploy job calls wrangler directly instead of using someone
+# else's action.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "09:00"
+    open-pull-requests-limit: 3
+    labels:
+      - dependencies
+    # The quarantine is the policy rather than a preference. .npmrc refuses any
+    # release younger than seven days, so a pull request proposing one would be
+    # a pull request CI cannot install. Security updates ignore this cooldown,
+    # which is the behaviour we want: an advisory should not wait a week.
+    cooldown:
+      default-days: 7
+    groups:
+      # Patch and minor updates for tooling travel together. A separate pull
+      # request each is noise nobody reads.
+      tooling:
+        dependency-type: development
+        update-types:
+          - minor
+          - patch
+      # Astro and Tailwind are the build, so they get their own pull request and
+      # a break stays attributable.
+      framework:
+        patterns:
+          - astro
+          - tailwindcss
+          - "@tailwindcss/*"
+
+  # The workflow pins every action by commit rather than by tag, which is right
+  # and also means nothing ever updates them. Dependabot rewrites the SHA and
+  # the trailing version comment together.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    labels:
+      - dependencies
+    cooldown:
+      default-days: 7

@@ -1,0 +1,29 @@
+# Local working docs, never published. AGENTS.md joined them because it is
+# written for whoever works on this next, not for whoever finds the repository.
+PLAN.md
+CLAUDE.md
+AGENTS.md
+
+# The decision records stay local too. They discuss the studio's own
+# infrastructure and what it chose not to do, which is more than a visitor needs.
+docs/adr/
+
+# Build/deps (Astro scaffold, Phase 1)
+node_modules/
+dist/
+.astro/
+
+# Env & OS noise
+.env
+.env.*
+.DS_Store
+
+# Operational data that must never reach a public repo, such as a DNS export or
+# a token file. It belongs outside the working tree.
+*.dns-backup-*.json
+.cf-token
+wrangler.toml.local
+.wrangler/
+
+# Logo explorations, reviewed locally and never published.
+.sketches/

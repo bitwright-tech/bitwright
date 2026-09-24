@@ -1,0 +1,42 @@
+---
+import Mark from "./Mark.astro";
+import MetalButton from "./MetalButton.astro";
+import { company } from "../data/company";
+
+/* Same order as the page: what we build, what we have built, how to contract it. */
+/* Rooted, not bare fragments. The header renders on every page, and `#capabilities`
+   from /privacy scrolls to an element that is not there, a link that silently does
+   nothing. `/#capabilities` works from anywhere. */
+const links = [
+  { label: "Capabilities", href: "/#capabilities" },
+  { label: "Systems", href: "/#systems" },
+  { label: "Products", href: "/#products" },
+];
+---
+
+<header
+  class="site-header md:rounded-panel sticky top-0 z-(--layer-sticky) mx-auto w-full max-w-5xl border border-transparent"
+>
+  <nav
+    class="site-nav flex h-14 w-full items-center justify-between px-6 md:h-12 md:px-4"
+  >
+    <a href="/" class="flex items-center gap-3">
+      <Mark decorative class="optical-mark text-ink h-5 w-auto" />
+      <span class="type-wordmark">{company.brand}</span>
+    </a>
+
+    <div class="flex items-center gap-1">
+      {
+        links.map((link) => (
+          <a
+            href={link.href}
+            class="hit-target type-body text-ink-2 hover:bg-surface hover:text-ink rounded-control hidden px-3 transition-colors duration-(--duration-fast) md:inline-flex"
+          >
+            {link.label}
+          </a>
+        ))
+      }
+      <MetalButton href="/#engagement" label="Get in touch" class="ml-3" />
+    </div>
+  </nav>
+</header>
