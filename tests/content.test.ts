@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { execSync } from "node:child_process";
 import { distFiles, doc, pages } from "./helpers";
-import { MAX_EM_DASH_PER_1000, SHAPE, VOCABULARY } from "../scripts/check-prose.mjs";
+import { SHAPE, VOCABULARY } from "../scripts/check-prose.mjs";
 
 /**
  * The rules that are not about taste.
@@ -317,10 +317,6 @@ describe("the writing a visitor actually reads", () => {
    * This reads the built pages instead, which is also where the copy ends up
    * rather than where it was typed. The rules are imported rather than copied:
    * two lists of marked words drifting apart would be worse than one.
-   *
-   * `<title>` is out of scope on purpose, not to spare it. `Brand — Tagline` is
-   * a label with a separator, which is what Google itself prints, and it is not
-   * the tell this measures. What it measures is dashes inside sentences.
    */
   const visible = (file: string) => {
     const d = doc(file);
@@ -354,20 +350,26 @@ describe("the writing a visitor actually reads", () => {
     }
   });
 
-  it("keeps em dashes under the rate the rest of the repository holds to", () => {
-    // Measured across every page at once rather than per page, because a short
-    // page like the not-found puts a single dash far over any rate.
-    let words = 0;
-    let dashes = 0;
-    for (const file of pages()) {
-      const text = visible(file);
-      words += text.split(/\s+/).filter(Boolean).length;
-      dashes += (text.match(/—/g) ?? []).length;
+  it("publishes no em dash anywhere", () => {
+    // Zero, counted in the files as they ship rather than in the visible text.
+    // The rate this replaced measured sentences and exempted the title, and the
+    // three dashes on every page sat in the title, og:title and og:image:alt,
+    // which is where it was not looking. llms.txt carried eleven and is not a
+    // page at all. An entity or an escape renders as the same character, so
+    // both count.
+    const dash = /\u2014|&mdash;|&#0*8212;?|&#x0*2014;?|\\u\{?0*2014/gi;
+    const files = shipped();
+    for (const expected of ["dist/index.html", "dist/llms.txt"]) {
+      expect(
+        files.map((f) => f.file),
+        `${expected} was not scanned`
+      ).toContain(expected);
     }
-    const rate = words ? (dashes / words) * 1000 : 0;
-    expect(
-      rate,
-      `${dashes} em dashes in ${words} published words, ${rate.toFixed(1)} per 1000`
-    ).toBeLessThanOrEqual(MAX_EM_DASH_PER_1000);
+    for (const { file, text } of files) {
+      const hits = text.match(dash) ?? [];
+      const at = text.search(dash);
+      const context = JSON.stringify(text.slice(Math.max(0, at - 30), at + 30));
+      expect(hits.length, `${file} publishes an em dash, first at ${context}`).toBe(0);
+    }
   });
 });

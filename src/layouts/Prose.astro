@@ -20,7 +20,7 @@ interface Props {
 const { title, description, heading, updated } = Astro.props;
 ---
 
-<Base title={`${title} — ${company.brand}`} description={description}>
+<Base title={`${title} · ${company.brand}`} description={description}>
   <Header />
   <main>
     <section class="pad-section mx-auto max-w-5xl px-6 md:px-10">

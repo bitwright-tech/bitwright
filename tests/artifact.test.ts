@@ -143,6 +143,27 @@ describe("what a machine reads", () => {
     }
   });
 
+  it("names each breadcrumb after its page, not after the whole title", () => {
+    // The crumb is cut from the title at the separator, which is typed again in
+    // every place that builds a title. Change one and not the others and the
+    // crumb carries the whole title, brand included, while every other check
+    // stays green.
+    let crumbs = 0;
+    for (const file of pages()) {
+      const d = doc(file);
+      const trail = [...d.querySelectorAll('script[type="application/ld+json"]')]
+        .map((n) => JSON.parse(n.textContent!))
+        .find((j) => j["@type"] === "BreadcrumbList");
+      if (!trail) continue;
+      crumbs++;
+      const name = trail.itemListElement.at(-1).name;
+      const title = d.querySelector("title")?.textContent;
+      expect(name, `${file} gives its breadcrumb no name`).toBeTruthy();
+      expect(name, `${file} names its breadcrumb after the whole title`).not.toBe(title);
+    }
+    expect(crumbs, "no page carries a breadcrumb").toBeGreaterThan(0);
+  });
+
   it("keeps security.txt in date", () => {
     // RFC 9116 makes Expires mandatory, and a file past it reads as abandoned,
     // worse than publishing none. Sixty days of warning is enough to act on and

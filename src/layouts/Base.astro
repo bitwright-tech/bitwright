@@ -67,7 +67,7 @@ const trail =
           {
             "@type": "ListItem",
             position: 2,
-            name: title.split(" — ")[0],
+            name: title.split(" · ")[0],
             item: canonical.href,
           },
         ],
@@ -142,7 +142,7 @@ const website = {
     <meta property="og:image:height" content="630" />
     <meta
       property="og:image:alt"
-      content={`${company.brand} — ${company.metaDescription}`}
+      content={`${company.brand}. ${company.metaDescription}`}
     />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="color-scheme" content="light dark" />
