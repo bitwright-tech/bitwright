@@ -81,7 +81,7 @@ export const systems = [
     status: "In production",
     stack: "Kubernetes · Argo CD · GitOps",
     description:
-      "Self-hosted rather than managed, carrying several products' workloads at once, with delivery through Git and nothing applied by hand. It is what will serve this site once the origin moves.",
+      "Self-hosted rather than managed, carrying several products' workloads at once, with delivery through Git and nothing applied by hand.",
   },
 ] as const;
 
