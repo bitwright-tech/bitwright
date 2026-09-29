@@ -1,10 +1,16 @@
 # Local gates. The point is not ceremony: every check here has already caught a
 # real defect in this repository, and each one is cheap enough to run on a commit.
+
+# The default matcher reads "scripts/**/*" as needing a folder below scripts/, so
+# a file directly in scripts/ or tests/ skips the suite. doublestar matches it,
+# and its "*" stops at a slash, so a glob meant for any depth starts with "**/".
+glob_matcher: doublestar
+
 pre-commit:
   parallel: true
   commands:
     format:
-      glob: "*.{astro,ts,js,mjs,css,json,md,yml}"
+      glob: "**/*.{astro,ts,js,mjs,css,json,md,yml}"
       run: npx prettier --check {staged_files}
       fail_text: "run `npm run format`"
     design-system:
@@ -24,7 +30,7 @@ pre-commit:
     # read by people deciding whether the studio can write. The measured rate
     # before this existed was 8.8 em dashes per thousand words.
     prose:
-      glob: "*.{md,ts,astro,css,mjs}"
+      glob: "**/*.{md,ts,astro,css,mjs}"
       run: npm run check:prose
       fail_text: "the writing has drifted, see scripts/check-prose.mjs"
 
