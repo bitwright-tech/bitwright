@@ -22,7 +22,7 @@
     "check:live": "node scripts/check-live.mjs"
   },
   "dependencies": {
-    "@astrojs/sitemap": "^3.7.3",
+    "@astrojs/sitemap": "^3.7.4",
     "@paper-design/shaders": "^0.0.80",
     "@tailwindcss/vite": "^4.3.3",
     "astro": "^7.2.2",
